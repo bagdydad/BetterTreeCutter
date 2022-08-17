@@ -1,0 +1,5 @@
+name: BetterTreeCutter
+version: 1.0
+author: oTuin
+main: bettertreecutter.BetterTreeCutterPlugin
+api-version: 1.13
