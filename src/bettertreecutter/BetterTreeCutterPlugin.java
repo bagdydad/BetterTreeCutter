@@ -64,28 +64,40 @@ public class BetterTreeCutterPlugin extends JavaPlugin implements Listener {
 		String bT = block.getType().toString().toUpperCase();
 		String treeType = bT.split("_")[0].toUpperCase();
 
-
-
-
 		if (!bT.contains("LOG") && !bT.contains("ROOTS") && !bT.contains("STEM")) return;
+
+
 
 		Block tempGround = null;
 		Block groundBlock;
 
 		if (treeType.contains("MANGROVE") || treeType.contains("MUDDY")) {
-			mangroveSearch:
-			for (int y = block.getY(); y <= block.getY() + 9; y++) {
-				for (int x = block.getX() - 5; x <= block.getX() + 5; x++) {
-					for (int z = block.getZ() - 5; z <= block.getZ() + 5; z++) {
-						Block checkBlock = new Location(world, x, y, z).getBlock();
+			mangroveSearchX:
+			for (int x = block.getX() - 5; x <= block.getX() + 5; x++) {
+				for (int y = block.getY(); y <= block.getY() + 8; y++) {
+					Block checkBlock = new Location(world, x, y, block.getZ()).getBlock();
+					String cbT = checkBlock.getType().toString().toUpperCase();
+					if (cbT.contains("MANGROVE_LOG")) {
+						tempGround = getGround(checkBlock, "MANGROVE");
+						break mangroveSearchX;
+					}
+				}
+			}
+
+			mangroveSearchZ:
+			if (tempGround == null) {
+				for (int z = block.getZ() - 5; z <= block.getZ() + 5; z++) {
+					for (int y = block.getY(); y <= block.getY() + 8; y++) {
+						Block checkBlock = new Location(world, block.getX(), y, z).getBlock();
 						String cbT = checkBlock.getType().toString().toUpperCase();
 						if (cbT.contains("MANGROVE_LOG")) {
 							tempGround = getGround(checkBlock, "MANGROVE");
-
-							break mangroveSearch;
+							break mangroveSearchZ;
 						}
 					}
 				}
+			} else {
+				break mangroveSearchZ;
 			}
 		}
 
@@ -140,10 +152,8 @@ public class BetterTreeCutterPlugin extends JavaPlugin implements Listener {
 
 		boolean match = false;
 
-		if (lbX1 == lbX2 || lbX1 == lbX2-1 || lbX1 == lbX2+1) {
-			if (lbZ1 == lbZ2 || lbZ1 == lbZ2-1 || lbZ1 == lbZ2+1) {
-				match = true;
-			}
+		if (lbX1 == lbX2 && lbZ1 == lbZ2) {
+			match = true;
 		}
 
 		int strng = size;
@@ -187,7 +197,8 @@ public class BetterTreeCutterPlugin extends JavaPlugin implements Listener {
 					}
 				}
 			}
-			strng = strng - 2 * grnds;
+			if (strng > 2) strng = strng - 2;
+			strng = Math.abs(strng * grnds);
 		}
 
 		player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(String.valueOf(breakCount.get(player.getUniqueId())) + "/" + strng));
@@ -407,7 +418,7 @@ public class BetterTreeCutterPlugin extends JavaPlugin implements Listener {
 
 		int airTolerance = 1;
 
-		if (treeType.contains("MANGROVE")) airTolerance = 7;
+		if (treeType.contains("MANGROVE")) airTolerance = 8;
 
 		for (int y = block.getY(); y > block.getY() - 15; y--) {
 
@@ -415,7 +426,7 @@ public class BetterTreeCutterPlugin extends JavaPlugin implements Listener {
 			String bT = checkBlock.getType().toString().toUpperCase();
 
 			if (!bT.contains("LOG") && !bT.contains("ROOTS") && !bT.contains("STEM") && !bT.contains("GRASS_BLOCK") && !bT.contains("DIRT") && !bT.contains("MUD") && !bT.contains("PODZOL") && !bT.contains("MYCELIUM") && !bT.contains("MOSS_BLOCK") && !bT.contains("NYLIUM") && !bT.contains("NETHERRACK") && !bT.contains("GRAVEL") && !bT.contains("SAND")) {
-				if (treeType.contains("MANGROVE") && bT.contains("VINE") || treeType.contains("MANGROVE") && bT.contains("MOSS_CARPET") || treeType.contains("MANGROVE") && bT.contains("MANGROVE_PROPAGULE")) {
+				if (treeType.contains("MANGROVE") && bT.contains("VINE") || treeType.contains("MANGROVE") && bT.contains("MOSS_CARPET") || treeType.contains("MANGROVE") && bT.contains("MANGROVE_PROPAGULE") || treeType.contains("MANGROVE") && bT.contains("WATER") || treeType.contains("MANGROVE") && bT.contains("SEAGRASS")) {
 					continue;
 				} else if (bT.contains("AIR")) {
 					if (airTolerance > 0) {
@@ -446,7 +457,7 @@ public class BetterTreeCutterPlugin extends JavaPlugin implements Listener {
 		World world = block.getWorld();
 		int airTolerance = 1;
 		if (treeType.contains("ACACIA")) airTolerance = 4;
-		if (treeType.contains("MANGROVE")) airTolerance = 15;
+		if (treeType.contains("MANGROVE")) airTolerance = 8;
 		int size = 0;
 
 		for (int y = block.getY(); y < block.getY() + 35; y++) {
@@ -465,20 +476,19 @@ public class BetterTreeCutterPlugin extends JavaPlugin implements Listener {
 
 			if (treeType.contains("MANGROVE")) {
 				size++;
-				if (size < 9) {
+				if (size < 7) {
 					continue;
 				}
 			}
 
-			if (bT.contains("LOG") || bT.contains("ROOTS") || bT.contains("STEM") || treeType.contains("MANGROVE") && bT.contains("VINE") || treeType.contains("MANGROVE") && bT.contains("MOSS_CARPET") || treeType.contains("MANGROVE") && bT.contains("MANGROVE_PROPAGULE")) continue;
-			if (bT.contains("LEAVES") || bT.contains("RED_MUSHROOM_BLOCK") || bT.contains("BROWN_MUSHROOM_BLOCK") || bT.contains("WART_BLOCK") || bT.contains("NETHERRACK")) {
-				if (uB.contains("AIR") || uB.contains("NETHERRACK")){
+			if (bT.contains("LOG") || bT.contains("ROOTS") || bT.contains("STEM") || treeType.contains("MANGROVE") && bT.contains("MOSS_CARPET") || treeType.contains("MANGROVE") && bT.contains("MANGROVE_PROPAGULE")) continue;
+			if (bT.contains("LEAVES") || bT.contains("RED_MUSHROOM_BLOCK") || bT.contains("BROWN_MUSHROOM_BLOCK") || bT.contains("WART_BLOCK") || bT.contains("NETHERRACK") || bT.contains("VINE")) {
+				if (uB.contains("AIR") || uB.contains("NETHERRACK") || bT.contains("VINE") && treeType.contains("MANGROVE") && uB.contains("AIR")){
 					return checkBlock;
 				} else {
 					continue;
 				}
-			}
-			if (bT.contains("AIR")) {
+			} else if (bT.contains("AIR")) {
 				if (airTolerance > 0) {
 					airTolerance--;
 					continue;
